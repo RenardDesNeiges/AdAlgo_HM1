@@ -49,28 +49,100 @@ We consider the following problem :
 \begin{problem}
     Taking the right set of courses for each semester is always challenging – in this problem you will design an algorithm for this task. \\
     Suppose that there are $n$ courses available for the next semester and the exam season for the next semester starts at day $1$. Also, for any $j \in {1, 2, . . . , n}$, the $j$’th course has $c_j$ credits and its exam is on day $d_j$. In order to pass a course you need to allocate exactly one day to prepare for its exam. You want to obtain the maximum number of credits possible in the next semester. Design an efficient algorithm that finds a set of optimal courses (with the maximum credits in total) that you can pass and prove the correctness of your algorithm, assuming the following:
-    \begin{itemize}
+    \begin{enumerate}
         \item You can only prepare for the exams after the exam season starts (it starts on day 1).
         \item On each day, you can only study one course the whole day (no multitasking).
         \item The exams take place at the end of each day. Assume that they do not take any time, i.e., if you have any number of exams on any day, you can still study on that day.
         \item If you do not study for a course before its exam, you are guaranteed to fail that course. For example, to pass an exam that is on day $d_j$, you need to study for that exam on a day $i$, where $1 \leq i \leq d_j$.
         \item It is possible to have more than one exam on a day.
-    \end{itemize}
+    \end{enumerate}
 
 \end{problem}
 
 \subsubsection*{Proposed Solution}
 
-Consider the bipartite graph $G = (T \cup S, E)$ that we construct as such :
-\begin{itemize}
-    \item For each day of the session we add a vertex $t_i$ to $T$ (so $T = \left\lbrace t_1, t_2, ... t_m \right\rbrace)$ for a $m$ days long session.
-    \item For each possible course we add a vertex $s_i$ to $S$ (so $S = \left\lbrace s_1, s_2, ... s_n \right\rbrace)$ for a semester where $n$ courses are available.
-    \item We add an edge $e=(t_j,s_i)$ between two vertices $\iff i \leq d_j$ (for a given course-vertex $s_i$ we add an edge to every day-vertex $t_j$ when it would still be possible to prepare for the exam).
-\end{itemize}
-We then define the following cost function $w : V \rightarrow \mathbb{R}$
-\[ w_{(t_j,s_i)} = c_j. \]
-The problem as formulated becomes a \textit{maximum-weight bipartite matching} problem on $G$ with respect to $w$ that we can solve in polynomial time (as it is a matroid intersection problem).
-\newpage
+%Consider the bipartite graph $G = (T \cup S, E)$ that we construct as such :
+%\begin{itemize}
+ %   \item For each day of the session we add a vertex $t_i$ to $T$ (so $T = \left\lbrace t_1, t_2, ... t_m \right\rbrace)$ for a $m$ days long session.
+  %  \item For each possible course we add a vertex $s_i$ to $S$ (so $S = \left\lbrace s_1, s_2, ... s_n \right\rbrace)$ for a semester where $n$ courses are available.
+   % \item We add an edge $e=(t_j,s_i)$ between two vertices $\iff i \leq d_j$ (for a given course-vertex $s_i$ we add an edge to every day-vertex $t_j$ when it would still be possible to prepare for the exam).
+%\end{itemize}
+%We then define the following cost function $w : V \rightarrow \mathbb{R}$
+%\[ w_{(t_j,s_i)} = c_j. \]
+%The problem as formulated becomes a \textit{maximum-weight bipartite matching} problem on $G$ with respect to $w$ that we can solve in polynomial time (as it is a matroid intersection problem).
+%\newpage
+
+We reduce ourselves to applying the greedy algorithm on a well chosen matroid.
+From now on, we will refer to a specific course by a number in $[n]=\{1,\ldots,n\}$.
+Also let us suppose that they are ordered increasingly by the date of their exams, i.e. we have
+\begin{equation*}
+    d_1\leq\ldots\leq d_n.
+\end{equation*}
+For a subset of courses $X\subseteq[n]$, we say that $X$ is \emph{feasible} if $X$ is a set of course that a student can prepare for according to the rules above.
+From this definition, we derive the following claim:
+\begin{claim}
+    Let $X\subseteq[n]$ be a subset of courses. Then if we write $X=\{i_1,\ldots,i_k\}$ with $i_1<\ldots<i_k$, we have that $X$ is feasible if and only if $\mu\leq d_{i_\mu}$ for each $\mu=1,\ldots,k$.
+\end{claim}
+\begin{proof}
+    Suppose that $\mu\leq d_{i_\mu}$ for each $\mu=1,\ldots,k$. Then revising for the course $i_\mu$ on the day $\mu$ for each $\mu=1,\ldots,k$ gives the student a strategy that respects the conditions.
+    Let us check that this strategy checks the conditions given above:
+    \begin{enumerate}
+        \item The first day of preparation is on $(\mu=1)$'st day and not before.
+        \item On day $\mu$, the student prepares the course $i_\mu$, which is only one course for each $\mu=1,\ldots,k$.
+        \item That is why we have $\mu\leq d_{i_\mu}$ and not $\mu<d_{i_\mu}$ for each $\mu=1,\ldots,k$.
+        \item Since $\mu\leq d_{i_\mu}$ for each $\mu=1,\ldots,k$, we have that the student will have prepared the examination $i_\mu$ the day $\mu$ which is before the day of its exam $d_{i_\mu}$ for each $\mu=1,\ldots,k$.
+        \item We do not assume that exams can not take place the same day.
+    This proves that $X$ is feasible.
+    Now suppose that $X$ is feasible and suppose that $\mu>d_{i_\mu}$ for some $\mu\in\{1,\ldots,k\}$.
+    Then trying to prepare for the courses $Y=\{i_1,\ldots,i_\mu\}$ is impossible.
+    Indeed suppose we have a preparation strategy for $Y$.
+    Then this means we are trying to prepare for $\mu$ examinations in $d_{i_\mu}$ days. By the pigeonhole principle, this means that the student needs to work on 2 courses the same day at least one day, which violates one of the rules.
+    Noting that a preparation strategy for $X$ can be restricted to a preparation strategy for $Y$ (by forgetting the preparation days for the courses not contained in $Y$ for example), we see that we reach a contradiction.
+    Thus such a $\mu$ can not exist and $\mu\leq d_{i_\mu}$ for each $\mu=1,\ldots,k$.
+    \end{enumerate}
+\end{proof}
+
+Now let us define the so-called "well chosen matroid".
+We choose $E=[n]$ as the ground set and $I=\{X\subseteq[n]|\ X\ \mathrm{is\ feasible}\}$ as the independent sets to form the matroid $M=(E,I)$.
+Now we need to prove that $M$ is indeed a matroid by checking the 2 conditions:
+\begin{enumerate}
+    \item Suppose we $X\in I$ and $Y\subseteq X$. Then, as said before, a preparation strategy for $X$ gives a preparation strategy for $Y$ by forgetting some of the preparation day. So $Y\in I$.
+    \item Now suppose we have $X=\{i_1,\ldots,i_k\},Y=\{j_1,\ldots,j_l\}\in I$ and $l>k$ with
+          \begin{align*}
+              i_1<\ldots<i_k,\\
+              j_1<\ldots<j_l.
+          \end{align*} 
+          and $j_l\notin X$. We distinguish 3 cases.\newline
+          If $j_l>i_k$, then the set $X\cup\{j_l\}=\{i_1,\ldots,i_k,j_l\}=\{h_1,\ldots,h_{k+1}\}$ is feasible. Indeed we have
+          \begin{gather*}
+              \mu\leq d_{i_\mu}=d_{h_\mu}\ \mathrm{if}\ \mu=1,\ldots,k,\\
+              d_{h_{k+1}}=d_{j_l}\geq l\geq k+1,
+          \end{gather*}
+          which implies that $X\cup\{j_l\}$ is feasible by the claim above.\newline
+          If $j_l < i_1$, then the set $X\cup\{j_l\}=\{j_l,i_1,\ldots,i_k\}=\{h_1,\ldots,h_{k+1}\}$ is feasible. Indeed we have
+          \begin{gather*}
+              1\leq d_{j_l}=d_{h_1},\\
+              \mu\leq l\leq d_{j_l}\leq d_{i_{\mu-1}}=d_{h_\mu},
+          \end{gather*}
+          which implies that $X\cup\{j_l\}$ is feasible by the claim above.\newline
+          If $i_1<j_l<i_k$. Let $\mu\in\{1,\ldots,k-1\}$ be such that $i_\mu < j_l < i_{\mu+1}$.
+          Then $X\cup\{j_l\}=\{i_1,\ldots,i_\mu,j_l,i_{\mu+1},\ldots,i_k\}=\{h_1,\ldots,h_{k+1}\}$ is feasible. Indeed we have that 
+          \begin{gather*}
+              \nu\leq d_{i_\nu}=d_{h_\nu},\ \mathrm{if}\ \nu=1,\ldots,\mu,\\
+              \mu+1\leq l\leq d_{j_l}=d_{h_{\mu+1}},\\
+              \nu\leq l\leq d_{j_l}\leq d_{i_{\nu}}=d_{h_{\nu}},\ \mathrm{if}\ \nu=\mu+2,\ldots,k+1,
+          \end{gather*}
+          which implies that $X\cup\{j_l\}$ is feasible by the claim above.
+\end{enumerate}
+Now let us set the set of weights $w=(c_i)_{i\in E}$ and run the greedy algorithm on $M$ with weights $C$.
+Let $R$ be the resulting set of courses. Suppose that we have $R^*$ be an optimal solution.
+Note that since $R^*$ respect the preparation rules, then $R^*$ is a feasible set and thus $R^*\in I$.
+In fact the optimality of $R^*$ tells us that it is a base of maximal weight of the matroid $M$.
+By theorem 4 of the lecture notes 1, we get that 
+\begin{equation*}
+    \sum_{r\in R}c_r\geq\sum_{r\in R^*}c_r
+\end{equation*}
+which translates to an equality with taking the optimality of $R^*$ into account. Thus $R$ is indeed an optimal solution to our problem.
 
 \subsection*{2 - Safe Travels}
 
