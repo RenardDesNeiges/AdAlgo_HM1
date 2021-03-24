@@ -39,7 +39,8 @@ def turbo_greddy(deltas,edges,n):
                     if(deltas[i][1] == did):
                         # print("decreasing "+str(i))
                         deltas[i][0] = deltas[i][0] - 1
-        heapq._heapify_max(deltas)
+                        heapq._siftdown_max(deltas,i,i)
+        # heapq._heapify_max(deltas)
 
     # print(deltas)
     cost = cost + sum(d for d, _ in deltas)/2
